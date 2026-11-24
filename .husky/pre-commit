@@ -3,7 +3,7 @@
 
 # 1. Validar nombre de rama
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-VALID_BRANCH_REGEX="^(main|develop|(feat|fix|chore|docs|refactor|test|ci)\/[a-z0-9._-]+)$"
+VALID_BRANCH_REGEX="^(main|develop|development|(feat|fix|chore|docs|refactor|test|ci)\/[a-z0-9._-]+)$"
 
 if ! echo "$BRANCH" | grep -Eq "$VALID_BRANCH_REGEX"; then
   echo "Error: Nombre de rama inválido ('$BRANCH')."
