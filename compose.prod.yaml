@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: production
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    environment:
+      - PUBLIC_API_URL=/api

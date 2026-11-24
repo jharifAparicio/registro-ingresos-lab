@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh" 2>/dev/null || true
+
+# 1. Validar nombre de rama
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+VALID_BRANCH_REGEX="^(main|develop|(feat|fix|chore|docs|refactor|test|ci)\/[a-z0-9._-]+)$"
+
+if ! echo "$BRANCH" | grep -Eq "$VALID_BRANCH_REGEX"; then
+  echo "Error: Nombre de rama inválido ('$BRANCH')."
+  echo "Usa: main, develop o feat|fix|chore|docs|refactor|test|ci/<nombre-en-kebab-case>"
+  exit 1
+fi
+
+# 2. Ejecutar tests del backend
+echo "Ejecutando tests del backend..."
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm --dir backend test
+elif command -v docker >/dev/null 2>&1; then
+  docker compose exec -T backend pnpm test
+else
+  echo "Error: ni pnpm ni docker están disponibles para ejecutar los tests."
+  exit 1
+fi

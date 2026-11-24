@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh" 2>/dev/null || true
+
+MSG_FILE="$1"
+COMMIT_MSG=$(head -n 1 "$MSG_FILE")
+CONVENTIONAL_REGEX="^(feat|fix|chore|docs|refactor|test|ci|build|perf|style)(\([a-z0-9-]+\))?!?: .{3,}$"
+
+if ! echo "$COMMIT_MSG" | grep -Eq "$CONVENTIONAL_REGEX"; then
+  echo "Error: Mensaje de commit inválido ('$COMMIT_MSG')."
+  echo "Usa Conventional Commits, ej: feat(backend): agregar endpoint de login"
+  exit 1
+fi

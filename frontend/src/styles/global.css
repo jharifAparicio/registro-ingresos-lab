@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta base - Laboratorio de Robótica */
+  --color-bg: #0b0f19;
+  --color-surface: #111827;
+  --color-surface-hover: #1f2937;
+  --color-border: #1e293b;
+
+  /* Texto */
+  --color-text: #f8fafc;
+  --color-text-muted: #94a3b8;
+
+  /* Acentos */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-accent: #06b6d4;
+
+  /* Estados del sistema */
+  --color-online: #10b981;
+  --color-offline: #ef4444;
+  --color-recording: #f59e0b;
+
+  /* Tipografía */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
