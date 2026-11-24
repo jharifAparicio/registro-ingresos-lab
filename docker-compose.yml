@@ -1,0 +1,58 @@
+services:
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: lab_mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: lab_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: lab_backend
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      MQTT_BROKER_URL: mqtt://mqtt:1883
+      STORAGE_PATH: /app/storage
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ${STORAGE_HOST_PATH:-./storage}:/app/storage
+    depends_on:
+      - db
+      - mqtt
+
+  frontend:
+    build: ./frontend
+    container_name: lab_frontend
+    ports:
+      - "4321:4321"
+    environment:
+      - PUBLIC_API_URL=http://localhost:8000
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pg_data:
