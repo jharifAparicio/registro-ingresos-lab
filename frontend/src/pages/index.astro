@@ -1,17 +1,345 @@
 ---
-import "../styles/global.css"
+import Layout from '../layouts/Layout.astro'
+
+const apiUrl = import.meta.env.PUBLIC_API_URL || '/api'
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Panel de Control — Lab Robótica">
+  <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <!-- Header -->
+    <header class="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Registro de Ingresos</h1>
+        <p class="text-sm text-text-muted">Laboratorio de Robótica — Monitoreo por eventos</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span
+          id="device-badge"
+          class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-muted"
+        >
+          <span id="device-dot" class="h-2 w-2 rounded-full bg-text-muted"></span>
+          <span id="device-text">Verificando cámara...</span>
+        </span>
+        <button
+          id="logout-btn"
+          class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition hover:bg-surface-hover hover:text-text"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <section class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="rounded-xl border border-border bg-surface p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Total Eventos</p>
+        <p id="stat-events" class="mt-2 text-3xl font-bold">--</p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Duración Total</p>
+        <p id="stat-duration" class="mt-2 text-3xl font-bold">--</p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Espacio Ocupado</p>
+        <p id="stat-storage" class="mt-2 text-3xl font-bold">--</p>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <!-- Historial y Reproductor -->
+      <section class="space-y-6 lg:col-span-2">
+        <div class="rounded-xl border border-border bg-surface p-5">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-lg font-semibold">Historial de Eventos</h2>
+            <form id="filter-form" class="flex flex-wrap items-center gap-2">
+              <input
+                id="filter-from"
+                type="date"
+                class="rounded-lg border border-border bg-bg px-2.5 py-1.5 text-xs text-text"
+              />
+              <input
+                id="filter-to"
+                type="date"
+                class="rounded-lg border border-border bg-bg px-2.5 py-1.5 text-xs text-text"
+              />
+              <button
+                type="submit"
+                class="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
+              >
+                Filtrar
+              </button>
+            </form>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="border-b border-border text-xs uppercase text-text-muted">
+                <tr>
+                  <th class="py-2 pr-3">Fecha / Hora</th>
+                  <th class="py-2 pr-3">Duración</th>
+                  <th class="py-2 pr-3">Estado</th>
+                  <th class="py-2 text-right">Video</th>
+                </tr>
+              </thead>
+              <tbody id="events-body" class="divide-y divide-border">
+                <tr>
+                  <td colspan="4" class="py-6 text-center text-text-muted">Cargando eventos...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reproductor -->
+        <div id="player-card" class="hidden rounded-xl border border-border bg-surface p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 id="player-title" class="text-sm font-semibold">Reproduciendo evento</h3>
+            <button id="close-player" class="text-xs text-text-muted hover:text-text">Cerrar</button>
+          </div>
+          <video id="video-player" controls class="w-full rounded-lg bg-black"></video>
+        </div>
+      </section>
+
+      <!-- Configuración del Docente -->
+      <aside class="space-y-6">
+        <div class="rounded-xl border border-border bg-surface p-5">
+          <h2 class="mb-4 text-lg font-semibold">Retención de Videos</h2>
+          <form id="config-form" class="space-y-3">
+            <div>
+              <label for="retention-days" class="mb-1 block text-xs text-text-muted">
+                Días en la computadora
+              </label>
+              <input
+                id="retention-days"
+                type="number"
+                min="1"
+                required
+                class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text"
+              />
+            </div>
+            <div>
+              <label for="min-duration" class="mb-1 block text-xs text-text-muted">
+                Duración mínima (segundos, mín. 300)
+              </label>
+              <input
+                id="min-duration"
+                type="number"
+                min="300"
+                required
+                class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
+            >
+              Guardar configuración
+            </button>
+            <p id="config-msg" class="hidden text-xs text-online"></p>
+          </form>
+        </div>
+
+        <div class="rounded-xl border border-border bg-surface p-5">
+          <h2 class="mb-4 text-lg font-semibold">Cambiar Contraseña</h2>
+          <form id="password-form" class="space-y-3">
+            <input
+              id="current-password"
+              type="password"
+              placeholder="Contraseña actual"
+              required
+              class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text"
+            />
+            <input
+              id="new-password"
+              type="password"
+              placeholder="Nueva contraseña (mín. 8)"
+              minlength="8"
+              required
+              class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text"
+            />
+            <button
+              type="submit"
+              class="w-full rounded-lg border border-border bg-surface-hover px-4 py-2 text-sm font-medium text-text hover:bg-border"
+            >
+              Actualizar contraseña
+            </button>
+            <p id="password-msg" class="hidden text-xs"></p>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ apiUrl }}>
+  const token = localStorage.getItem('lab_token')
+  if (!token) {
+    window.location.href = '/login'
+  }
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  }
+
+  const authFetch = async (path, options = {}) => {
+    const res = await fetch(`${apiUrl}${path}`, {
+      ...options,
+      headers: { ...headers, ...(options.headers || {}) }
+    })
+    if (res.status === 401) {
+      localStorage.removeItem('lab_token')
+      window.location.href = '/login'
+    }
+    return res
+  }
+
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    localStorage.removeItem('lab_token')
+    window.location.href = '/login'
+  })
+
+  const formatBytes = bytes => {
+    if (!bytes) return '0 MB'
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const loadDashboard = async () => {
+    const [statsRes, devicesRes, configRes] = await Promise.all([
+      authFetch('/stats'),
+      authFetch('/devices'),
+      authFetch('/config')
+    ])
+
+    if (statsRes.ok) {
+      const stats = await statsRes.json()
+      document.getElementById('stat-events').textContent = stats.totalEvents
+      document.getElementById('stat-duration').textContent = `${Math.round(stats.totalDurationSeconds / 60)} min`
+      document.getElementById('stat-storage').textContent = formatBytes(stats.totalSizeBytes)
+    }
+
+    if (devicesRes.ok) {
+      const devices = await devicesRes.json()
+      const cam = devices[0]
+      const dot = document.getElementById('device-dot')
+      const text = document.getElementById('device-text')
+      if (cam?.status === 'online') {
+        dot.className = 'h-2 w-2 rounded-full bg-online'
+        text.textContent = `${cam.id}: Online`
+      } else {
+        dot.className = 'h-2 w-2 rounded-full bg-offline'
+        text.textContent = cam ? `${cam.id}: Offline` : 'Sin cámara registrada'
+      }
+    }
+
+    if (configRes.ok) {
+      const cfg = await configRes.json()
+      document.getElementById('retention-days').value = cfg.retentionDays
+      document.getElementById('min-duration').value = cfg.minDurationSeconds
+    }
+  }
+
+  const loadEvents = async (from = '', to = '') => {
+    const params = new URLSearchParams()
+    if (from) params.set('from', `${from}T00:00:00Z`)
+    if (to) params.set('to', `${to}T23:59:59Z`)
+
+    const res = await authFetch(`/events?${params.toString()}`)
+    const tbody = document.getElementById('events-body')
+    if (!res.ok || !tbody) return
+
+    const data = await res.json()
+    if (!data.items.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-text-muted">No hay eventos registrados</td></tr>'
+      return
+    }
+
+    tbody.innerHTML = data.items
+      .map(
+        evt => `
+      <tr>
+        <td class="py-2.5 pr-3 font-mono text-xs">${new Date(evt.startedAt).toLocaleString()}</td>
+        <td class="py-2.5 pr-3">${evt.durationSeconds} s</td>
+        <td class="py-2.5 pr-3">
+          <span class="rounded px-2 py-0.5 text-xs ${
+            evt.status === 'completed'
+              ? 'bg-online/10 text-online'
+              : evt.status === 'recording'
+                ? 'bg-recording/10 text-recording'
+                : 'bg-offline/10 text-offline'
+          }">${evt.status}</span>
+        </td>
+        <td class="py-2.5 text-right">
+          ${
+            evt.status === 'completed'
+              ? `<button data-id="${evt.id}" data-label="${evt.eventId}" class="play-btn text-xs font-medium text-primary hover:underline">Ver video</button>`
+              : '<span class="text-xs text-text-muted">--</span>'
+          }
+        </td>
+      </tr>`
+      )
+      .join('')
+
+    document.querySelectorAll('.play-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id')
+        const label = btn.getAttribute('data-label')
+        const videoRes = await authFetch(`/events/${id}/video`)
+        if (!videoRes.ok) return
+        const blob = await videoRes.blob()
+        const player = document.getElementById('video-player')
+        player.src = URL.createObjectURL(blob)
+        document.getElementById('player-title').textContent = `Evento: ${label}`
+        document.getElementById('player-card').classList.remove('hidden')
+      })
+    })
+  }
+
+  document.getElementById('close-player')?.addEventListener('click', () => {
+    const player = document.getElementById('video-player')
+    player.pause()
+    player.src = ''
+    document.getElementById('player-card').classList.add('hidden')
+  })
+
+  document.getElementById('filter-form')?.addEventListener('submit', e => {
+    e.preventDefault()
+    const from = document.getElementById('filter-from').value
+    const to = document.getElementById('filter-to').value
+    void loadEvents(from, to)
+  })
+
+  document.getElementById('config-form')?.addEventListener('submit', async e => {
+    e.preventDefault()
+    const retentionDays = Number(document.getElementById('retention-days').value)
+    const minDurationSeconds = Number(document.getElementById('min-duration').value)
+    const res = await authFetch('/config', {
+      method: 'PATCH',
+      body: JSON.stringify({ retentionDays, minDurationSeconds })
+    })
+    const msg = document.getElementById('config-msg')
+    if (res.ok && msg) {
+      msg.textContent = 'Configuración guardada'
+      msg.classList.remove('hidden')
+    }
+  })
+
+  document.getElementById('password-form')?.addEventListener('submit', async e => {
+    e.preventDefault()
+    const currentPassword = document.getElementById('current-password').value
+    const newPassword = document.getElementById('new-password').value
+    const res = await authFetch('/auth/password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword, newPassword })
+    })
+    const msg = document.getElementById('password-msg')
+    if (msg) {
+      msg.textContent = res.ok ? 'Contraseña actualizada' : 'Error al actualizar contraseña'
+      msg.className = `text-xs ${res.ok ? 'text-online' : 'text-offline'}`
+      msg.classList.remove('hidden')
+    }
+  })
+
+  void loadDashboard()
+  void loadEvents()
+</script>
