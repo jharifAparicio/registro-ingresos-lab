@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { AppController } from './app.controller.js'
 import { AppService } from './app.service.js'
 import { AuthModule } from './auth/auth.module.js'
+import { DashboardModule } from './dashboard/dashboard.module.js'
 import { User } from './database/entities/user.entity.js'
 import { Device } from './database/entities/device.entity.js'
 import { Event } from './database/entities/event.entity.js'
@@ -24,7 +25,8 @@ import { MqttService } from './mqtt/mqtt.service.js'
       synchronize: true
     }),
     TypeOrmModule.forFeature([Device, Event, Config]),
-    AuthModule
+    AuthModule,
+    DashboardModule
   ],
   controllers: [AppController],
   providers: [AppService, RecordingService, RetentionService, MqttService]
