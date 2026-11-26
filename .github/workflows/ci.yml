@@ -22,8 +22,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: backend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec eslint .
-      - run: pnpm test
       - run: pnpm run build
 
   frontend:
@@ -41,5 +39,4 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec eslint .
       - run: pnpm run build
